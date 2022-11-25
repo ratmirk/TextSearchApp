@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using TextSearchApp.Data.Entities;
 
 namespace TextSearchApp.Host.Controllers
 {
@@ -18,14 +19,14 @@ namespace TextSearchApp.Host.Controllers
 
         [HttpGet]
         [Route("search-documents")]
-        public async Task<string> SearchDocuments(string text)
+        public List<DocumentText> SearchDocuments(string text)
         {
-            return await _textSearchService.SearchDocumentsByText(text);
+            return _textSearchService.SearchDocumentsByText(text);
         }
 
         [HttpDelete]
         [Route("delete-document")]
-        public async Task<IActionResult> DeleteDocument(string id)
+        public async Task<IActionResult> DeleteDocument(long id)
         {
             try
             {

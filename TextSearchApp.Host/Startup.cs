@@ -1,9 +1,12 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using TextSearchApp.Data;
+using TextSearchApp.Data.Seed;
 
 namespace TextSearchApp.Host
 {
@@ -24,6 +27,8 @@ namespace TextSearchApp.Host
                 c.SwaggerDoc("v1", new OpenApiInfo {Title = "TextSearchApp.Host", Version = "v1"});
             });
             services.AddScoped<TextSearchAppService>();
+            services.AddDbContext<TextSearchAppDbContext>(
+                options => options.UseInMemoryDatabase(databaseName: "DocumentsDb"));
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
