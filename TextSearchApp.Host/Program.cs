@@ -6,30 +6,33 @@ using Microsoft.Extensions.Hosting;
 using TextSearchApp.Data;
 using TextSearchApp.Data.Seed;
 
-namespace TextSearchApp.Host
+namespace TextSearchApp.Host;
+
+public static class Program
 {
-    public static class Program
+    public static async Task Main(string[] args)
     {
-        public static async Task Main(string[] args)
+        await CreateHostBuilder(args).Build().RunWithSeed(args);
+    }
+
+    public static IHostBuilder CreateHostBuilder(string[] args)
+    {
+        return Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder(args)
+            .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
+    }
+
+    private static async Task RunWithSeed(this IHost host, string[] args)
+    {
+        if (args.Length > 0 && args[0].Equals("seed", StringComparison.InvariantCultureIgnoreCase))
         {
-            await CreateHostBuilder(args).Build().RunWithSeed(args);
+            using var scope = host.Services.CreateScope();
+            await using var context = scope.ServiceProvider.GetRequiredService<TextSearchAppDbContext>();
+            await DbSeeder.SeedDb(context);
+            await host.RunAsync();
         }
-
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
-
-        private static async Task RunWithSeed(this IHost host, string[] args)
+        else
         {
-            if (args.Length > 0 && args[0].Equals("seed", StringComparison.InvariantCultureIgnoreCase))
-            {
-                using var scope = host.Services.CreateScope();
-                await using var context = scope.ServiceProvider.GetRequiredService<TextSearchAppDbContext>();
-                await DbSeeder.SeedDb(context);
-                await host.RunAsync();
-            }
-            else
-                await host.RunAsync();
+            await host.RunAsync();
         }
     }
 }

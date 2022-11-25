@@ -4,34 +4,33 @@ using System.Threading.Tasks;
 using TextSearchApp.Data;
 using TextSearchApp.Data.Entities;
 
-namespace TextSearchApp.Host
+namespace TextSearchApp.Host;
+
+public class TextSearchAppService
 {
-    public class TextSearchAppService
+    private readonly TextSearchAppDbContext _dbContext;
+
+    public TextSearchAppService(TextSearchAppDbContext dbContext)
     {
-        private TextSearchAppDbContext _dbContext;
+        _dbContext = dbContext;
+    }
 
-        public TextSearchAppService(TextSearchAppDbContext dbContext)
+    public List<DocumentText> SearchDocumentsByText(string text)
+    {
+        return _dbContext.Documents.Where(x => x.Text.Contains(text)).OrderBy(x => x.CreatedDate).Take(20).ToList();
+    }
+
+    public async Task DeleteDocument(long id)
+    {
+        var document = await _dbContext.Documents.FindAsync(id);
+        if (document != null)
         {
-            _dbContext = dbContext;
+            _dbContext.Documents.Remove(document);
+            await _dbContext.SaveChangesAsync();
         }
-
-        public List<DocumentText> SearchDocumentsByText(string text)
+        else
         {
-            return _dbContext.Documents.Where(x => x.Text.Contains(text)).OrderBy(x => x.CreatedDate).Take(20).ToList();
-        }
-
-        public async Task DeleteDocument(long id)
-        {
-            var document = await _dbContext.Documents.FindAsync(id);
-            if (document != null)
-            {
-                _dbContext.Documents.Remove(document);
-                await _dbContext.SaveChangesAsync();
-            }
-            else
-            {
-                throw new KeyNotFoundException();
-            }
+            throw new KeyNotFoundException();
         }
     }
 }

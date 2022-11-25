@@ -4,44 +4,43 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using TextSearchApp.Data.Entities;
 
-namespace TextSearchApp.Host.Controllers
+namespace TextSearchApp.Host.Controllers;
+
+[ApiController]
+[Route("api/text-search")]
+public class TextSearchAppController : ControllerBase
 {
-    [ApiController]
-    [Route("api/text-search")]
-    public class TextSearchAppController : ControllerBase
+    private readonly TextSearchAppService _textSearchService;
+
+    public TextSearchAppController(TextSearchAppService textSearchService)
     {
-        private readonly TextSearchAppService _textSearchService;
+        _textSearchService = textSearchService;
+    }
 
-        public TextSearchAppController(TextSearchAppService textSearchService)
+    [HttpGet]
+    [Route("search-documents")]
+    public List<DocumentText> SearchDocuments(string text)
+    {
+        return _textSearchService.SearchDocumentsByText(text);
+    }
+
+    [HttpDelete]
+    [Route("delete-document")]
+    public async Task<IActionResult> DeleteDocument(long id)
+    {
+        try
         {
-            _textSearchService = textSearchService;
+            await _textSearchService.DeleteDocument(id);
+        }
+        catch (KeyNotFoundException e)
+        {
+            return BadRequest("Такой документ не найден");
+        }
+        catch (Exception e)
+        {
+            return Problem("Неизвестная ошибка");
         }
 
-        [HttpGet]
-        [Route("search-documents")]
-        public List<DocumentText> SearchDocuments(string text)
-        {
-            return _textSearchService.SearchDocumentsByText(text);
-        }
-
-        [HttpDelete]
-        [Route("delete-document")]
-        public async Task<IActionResult> DeleteDocument(long id)
-        {
-            try
-            {
-                await _textSearchService.DeleteDocument(id);
-            }
-            catch (KeyNotFoundException e)
-            {
-                return BadRequest("Такой документ не найден");
-            }
-            catch (Exception e)
-            {
-                return Problem("Неизвестная ошибка");
-            }
-
-            return Ok();
-        }
+        return Ok();
     }
 }
