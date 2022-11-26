@@ -19,9 +19,9 @@ public class TextSearchAppController : ControllerBase
 
     [HttpGet]
     [Route("search-documents")]
-    public List<DocumentText> SearchDocuments(string text)
+    public async Task<List<DocumentText>> SearchDocuments(string text)
     {
-        return _textSearchService.SearchDocumentsByText(text);
+        return await _textSearchService.SearchDocumentsByText(text);
     }
 
     [HttpPost]

@@ -7,13 +7,14 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using CsvHelper;
 using CsvHelper.Configuration;
+using Nest;
 using TextSearchApp.Data.Entities;
 
 namespace TextSearchApp.Data.Seed;
 
 public static class DbSeeder
 {
-    public static async Task SeedDb(TextSearchAppDbContext dbContext)
+    public static async Task SeedDb(TextSearchAppDbContext dbContext, IElasticClient elasticClient)
     {
         var csvConfig = new CsvConfiguration(CultureInfo.CurrentCulture)
         {
@@ -30,10 +31,12 @@ public static class DbSeeder
             var text = csvReader.GetField(0);
             var createdDateText = csvReader.GetField(1);
             var isParsed = DateTime.TryParse(createdDateText, out var createdDate);
-            var rubrics = csvReader.GetField(2)?.Split(",").Select(x => Regex.Match(x, "'.*'").Value).ToArray();
+            var rubrics = csvReader.GetField(2)?.Split(",").Select(x => Regex.Match(x, "'(.*)'").Groups[1].Value).ToArray();
 
-            await dbContext.Documents.AddAsync(new DocumentText
+            var doc = await dbContext.Documents.AddAsync(new DocumentText
                 {Text = text, CreatedDate = isParsed ? createdDate : null, Rubrics = rubrics});
+
+            await elasticClient.IndexDocumentAsync(doc.Entity);
         }
 
         await dbContext.SaveChangesAsync();

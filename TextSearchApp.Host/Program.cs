@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Nest;
 using TextSearchApp.Data;
 using TextSearchApp.Data.Seed;
 
@@ -27,7 +28,9 @@ public static class Program
         {
             using var scope = host.Services.CreateScope();
             await using var context = scope.ServiceProvider.GetRequiredService<TextSearchAppDbContext>();
-            await DbSeeder.SeedDb(context);
+            var elastic = scope.ServiceProvider.GetRequiredService<IElasticClient>();
+
+            await DbSeeder.SeedDb(context, elastic);
             await host.RunAsync();
         }
         else

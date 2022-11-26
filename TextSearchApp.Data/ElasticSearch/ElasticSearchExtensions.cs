@@ -17,6 +17,8 @@ public static class ElasticSearchExtensions
             .PrettyJson()
             .DefaultIndex(defaultIndex);
 
+        AddDefaultMappings(settings);
+
         var client = new ElasticClient(settings);
 
         services.AddSingleton<IElasticClient>(client);
@@ -27,7 +29,8 @@ public static class ElasticSearchExtensions
     private static void AddDefaultMappings(ConnectionSettings settings)
     {
         settings
-            .DefaultMappingFor<DocumentText>(m => m);
+            .DefaultMappingFor<DocumentText>(m => m
+                .IdProperty(p => p.Id));
     }
 
     private static void CreateIndex(IElasticClient client, string indexName)
