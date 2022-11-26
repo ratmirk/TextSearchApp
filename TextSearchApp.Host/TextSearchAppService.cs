@@ -1,8 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Nest;
 using TextSearchApp.Data;
 using TextSearchApp.Data.Entities;
@@ -17,18 +17,21 @@ public class TextSearchAppService
     private readonly TextSearchAppDbContext _dbContext;
     private readonly IElasticClient _elasticClient;
     private readonly string _index;
+    private ILogger<TextSearchAppService> _logger;
 
     /// <summary>
-    /// Конструктор TextSearchAppServiceю
+    /// Конструктор TextSearchAppService
     /// </summary>
     /// <param name="dbContext"> Контекст базы. </param>
     /// <param name="elasticClient"> Клиент IElasticClient. </param>
     /// <param name="configuration"> Конфигурация. </param>
-    public TextSearchAppService(TextSearchAppDbContext dbContext, IElasticClient elasticClient, IConfiguration configuration)
+    /// <param name="logger"> Logger. </param>
+    public TextSearchAppService(TextSearchAppDbContext dbContext, IElasticClient elasticClient, IConfiguration configuration, ILogger<TextSearchAppService> logger)
     {
         _dbContext = dbContext;
         _elasticClient = elasticClient;
         _index = configuration["ELKConfiguration:index"];
+        _logger = logger;
     }
 
     /// <summary>
@@ -87,7 +90,7 @@ public class TextSearchAppService
 
         if (response.IsValid)
         {
-            Console.WriteLine($"Index document with ID {response.Id} succeeded.");
+            _logger.LogInformation("Index document with {Id} succeeded", response.Id);
         }
     }
 

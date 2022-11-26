@@ -38,7 +38,7 @@ public class TextSearchAppController : ControllerBase
     /// <returns></returns>
     [HttpGet]
     [Route("get-document")]
-    public async Task<DocumentText> SearchDocuments(long id)
+    public async Task<DocumentText> GetDocument(long id)
     {
         return await _textSearchService.GetById(id);
     }
