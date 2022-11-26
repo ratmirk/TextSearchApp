@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using TextSearchApp.Data;
+using TextSearchApp.Data.ElasticSearch;
 
 namespace TextSearchApp.Host;
 
@@ -23,11 +24,15 @@ public class Startup
         services.AddControllers();
         services.AddSwaggerGen(c =>
         {
-            c.SwaggerDoc("v1", new OpenApiInfo {Title = "TextSearchApp.Host", Version = "v1"});
+            c.SwaggerDoc("v1", new OpenApiInfo {Title = "TextSearchApp", Version = "v1"});
         });
+
         services.AddScoped<TextSearchAppService>();
+
+        //Db
         services.AddDbContext<TextSearchAppDbContext>(
             options => options.UseInMemoryDatabase("DocumentsDb"));
+        services.AddElasticsearch(_configuration);
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

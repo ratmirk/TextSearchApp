@@ -24,13 +24,21 @@ public class TextSearchAppController : ControllerBase
         return _textSearchService.SearchDocumentsByText(text);
     }
 
+    [HttpPost]
+    [Route("add-document")]
+    public async Task<IActionResult> AddDocument([FromBody]DocumentText document)
+    {
+        await _textSearchService.AddDocumentAsync(document);
+        return Ok(document);
+    }
+
     [HttpDelete]
     [Route("delete-document")]
     public async Task<IActionResult> DeleteDocument(long id)
     {
         try
         {
-            await _textSearchService.DeleteDocument(id);
+            await _textSearchService.DeleteDocumentAsync(id);
         }
         catch (KeyNotFoundException e)
         {
