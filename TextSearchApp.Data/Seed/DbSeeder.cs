@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using CsvHelper;
 using CsvHelper.Configuration;
+using Microsoft.Extensions.Configuration;
 using Nest;
 using TextSearchApp.Data.Entities;
 
@@ -14,15 +15,15 @@ namespace TextSearchApp.Data.Seed;
 
 public static class DbSeeder
 {
-    public static async Task SeedDb(TextSearchAppDbContext dbContext, IElasticClient elasticClient)
+    public static async Task SeedDb(TextSearchAppDbContext dbContext, IElasticClient elasticClient, IConfiguration configuration)
     {
         var csvConfig = new CsvConfiguration(CultureInfo.CurrentCulture)
         {
-            HasHeaderRecord = true,
-            Delimiter = ","
+            HasHeaderRecord = bool.Parse(configuration["SeedSettings:HasHeaderRecord"]),
+            Delimiter = configuration["SeedSettings:CsvDelimiter"]
         };
 
-        var fileName = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\Seed\\posts.csv";
+        var fileName = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + configuration["SeedSettings:File"];
         using var streamReader = File.OpenText(fileName);
         using var csvReader = new CsvReader(streamReader, csvConfig);
 

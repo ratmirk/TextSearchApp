@@ -97,12 +97,6 @@ public class TextSearchAppService
     /// <param name="id"> Идентификатор. </param>
     public async Task<DocumentText> GetById(long id)
     {
-        // var response = await _elasticClient.SearchAsync<DocumentText>(s => s
-        //     .Query(q => q
-        //         .Term(t => t.Id, id)
-        //     )
-        // );
-
         var response = await _elasticClient.GetAsync<DocumentText>(id, idx => idx.Index(_index));
 
         return response.IsValid ? response.Source : null;
