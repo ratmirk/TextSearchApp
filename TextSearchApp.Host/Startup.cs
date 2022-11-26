@@ -52,7 +52,7 @@ public class Startup
 
         //Db
         services.AddDbContext<TextSearchAppDbContext>(
-            options => options.UseInMemoryDatabase("DocumentsDb"));
+            options => options.UseNpgsql(_configuration["ConnectionString"]));
         services.AddElasticsearch(_configuration);
     }
 

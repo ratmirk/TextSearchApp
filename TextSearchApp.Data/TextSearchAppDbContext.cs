@@ -6,10 +6,11 @@ using TextSearchApp.Data.Entities;
 
 namespace TextSearchApp.Data;
 
-public class TextSearchAppDbContext : DbContext
+public sealed class TextSearchAppDbContext : DbContext
 {
     public TextSearchAppDbContext(DbContextOptions options) : base(options)
     {
+        Database.EnsureCreated();
     }
 
     public DbSet<DocumentText> Documents { get; set; }

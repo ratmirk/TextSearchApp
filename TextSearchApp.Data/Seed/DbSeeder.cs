@@ -40,7 +40,7 @@ public static class DbSeeder
             var rubrics = csvReader.GetField(2)?.Split(",").Select(x => Regex.Match(x, "'(.*)'").Groups[1].Value).ToArray();
 
             var doc = await dbContext.Documents.AddAsync(new DocumentText
-                {Text = text, CreatedDate = isParsed ? createdDate : null, Rubrics = rubrics});
+                {Text = text, CreatedDate = isParsed ? createdDate.ToUniversalTime() : null, Rubrics = rubrics});
 
             await elasticClient.IndexDocumentAsync(doc.Entity);
         }
