@@ -9,12 +9,21 @@ using TextSearchApp.Data.Entities;
 
 namespace TextSearchApp.Host;
 
+/// <summary>
+/// Сервис TextSearch.
+/// </summary>
 public class TextSearchAppService
 {
     private readonly TextSearchAppDbContext _dbContext;
     private readonly IElasticClient _elasticClient;
     private readonly string _index;
 
+    /// <summary>
+    /// Конструктор TextSearchAppServiceю
+    /// </summary>
+    /// <param name="dbContext"> Контекст базы. </param>
+    /// <param name="elasticClient"> Клиент IElasticClient. </param>
+    /// <param name="configuration"> Конфигурация. </param>
     public TextSearchAppService(TextSearchAppDbContext dbContext, IElasticClient elasticClient, IConfiguration configuration)
     {
         _dbContext = dbContext;
@@ -22,6 +31,10 @@ public class TextSearchAppService
         _index = configuration["ELKConfiguration:index"];
     }
 
+    /// <summary>
+    /// Поиск документов по тексту
+    /// </summary>
+    /// <param name="text"> Текст. </param>
     public async Task<List<DocumentText>> SearchDocumentsByText(string text)
     {
         var response = await _elasticClient.SearchAsync<DocumentText>(s => s
@@ -41,6 +54,11 @@ public class TextSearchAppService
         return _dbContext.Documents.Where(x => x.Text.Contains(text)).OrderBy(x => x.CreatedDate).Take(20).ToList();
     }
 
+    /// <summary>
+    /// Удалить документ по идентификатору.
+    /// </summary>
+    /// <param name="id"> Идентификатор. </param>
+    /// <exception cref="KeyNotFoundException"></exception>
     public async Task DeleteDocumentAsync(long id)
     {
         var document = await _dbContext.Documents.FindAsync(id);
@@ -56,6 +74,10 @@ public class TextSearchAppService
         }
     }
 
+    /// <summary>
+    /// Добавить документ.
+    /// </summary>
+    /// <param name="document"> Объект документа. </param>
     public async Task AddDocumentAsync(DocumentText document)
     {
         var doc = await _dbContext.AddAsync(document);
@@ -67,5 +89,22 @@ public class TextSearchAppService
         {
             Console.WriteLine($"Index document with ID {response.Id} succeeded.");
         }
+    }
+
+    /// <summary>
+    /// Получить документ по идентификатору.
+    /// </summary>
+    /// <param name="id"> Идентификатор. </param>
+    public async Task<DocumentText> GetById(long id)
+    {
+        // var response = await _elasticClient.SearchAsync<DocumentText>(s => s
+        //     .Query(q => q
+        //         .Term(t => t.Id, id)
+        //     )
+        // );
+
+        var response = await _elasticClient.GetAsync<DocumentText>(id, idx => idx.Index(_index));
+
+        return response.IsValid ? response.Source : null;
     }
 }

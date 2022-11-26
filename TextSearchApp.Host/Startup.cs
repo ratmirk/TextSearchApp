@@ -1,3 +1,6 @@
+using System;
+using System.IO;
+using System.Reflection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -10,21 +13,39 @@ using TextSearchApp.Data.ElasticSearch;
 
 namespace TextSearchApp.Host;
 
+/// <summary>
+/// Startup.
+/// </summary>
 public class Startup
 {
     private readonly IConfiguration _configuration;
 
+    /// <summary>
+    /// New instance of Startup.
+    /// </summary>
+    /// <param name="configuration"> IConfiguration. </param>
     public Startup(IConfiguration configuration)
     {
         _configuration = configuration;
     }
 
+    /// <summary>
+    /// ConfigureServices.
+    /// </summary>
+    /// <param name="services"></param>
     public void ConfigureServices(IServiceCollection services)
     {
         services.AddControllers();
-        services.AddSwaggerGen(c =>
+        services.AddSwaggerGen(options =>
         {
-            c.SwaggerDoc("v1", new OpenApiInfo {Title = "TextSearchApp", Version = "v1"});
+            options.SwaggerDoc("v1", new OpenApiInfo
+            {
+                Title = "TextSearchApp",
+                Version = "v1",
+                Description = "Поисковик по текстам документов",
+            });
+            var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+            options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
         });
 
         services.AddScoped<TextSearchAppService>();
@@ -35,6 +56,11 @@ public class Startup
         services.AddElasticsearch(_configuration);
     }
 
+    /// <summary>
+    /// Configure.
+    /// </summary>
+    /// <param name="app"> IApplicationBuilder. </param>
+    /// <param name="env"> IWebHostEnvironment. </param>
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
         if (env.IsDevelopment())

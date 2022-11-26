@@ -9,13 +9,25 @@ using TextSearchApp.Data.Seed;
 
 namespace TextSearchApp.Host;
 
+/// <summary>
+/// Program.
+/// </summary>
 public static class Program
 {
+    /// <summary>
+    /// Main point.
+    /// </summary>
+    /// <param name="args"></param>
     public static async Task Main(string[] args)
     {
         await CreateHostBuilder(args).Build().RunWithSeed(args);
     }
 
+    /// <summary>
+    /// HostBuilder.
+    /// </summary>
+    /// <param name="args"></param>
+    /// <returns></returns>
     public static IHostBuilder CreateHostBuilder(string[] args)
     {
         return Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder(args)
