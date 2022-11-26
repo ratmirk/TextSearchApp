@@ -58,10 +58,10 @@ public class TextSearchAppService
 
     public async Task AddDocumentAsync(DocumentText document)
     {
-        await _dbContext.AddAsync(document);
+        var doc = await _dbContext.AddAsync(document);
         await _dbContext.SaveChangesAsync();
 
-        var response = await _elasticClient.IndexDocumentAsync(document);
+        var response = await _elasticClient.IndexDocumentAsync(doc.Entity);
 
         if (response.IsValid)
         {

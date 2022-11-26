@@ -36,7 +36,14 @@ public static class ElasticSearchExtensions
     private static void CreateIndex(IElasticClient client, string indexName)
     {
         var createIndexResponse = client.Indices.Create(indexName,
-            index => index.Map<DocumentText>(x => x.AutoMap())
+            index => index.Map<DocumentText>(x =>
+                x.Properties(p => p
+                    .Number(num => num
+                        .Name(n => n.Id)
+                        .Type(NumberType.Long)))
+                    .Properties(p => p
+                        .Text(t => t
+                            .Name(n => n.Text))))
         );
     }
 }
