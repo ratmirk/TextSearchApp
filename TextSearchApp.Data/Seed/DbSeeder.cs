@@ -27,6 +27,11 @@ public static class DbSeeder
         using var streamReader = File.OpenText(fileName);
         using var csvReader = new CsvReader(streamReader, csvConfig);
 
+        if (csvConfig.HasHeaderRecord)
+        {
+            _ = await csvReader.ReadAsync();
+        }
+
         while (await csvReader.ReadAsync())
         {
             var text = csvReader.GetField(0);
