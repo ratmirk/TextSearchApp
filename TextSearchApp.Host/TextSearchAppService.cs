@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Nest;
@@ -43,18 +45,20 @@ public class TextSearchAppService
         var response = await _elasticClient.SearchAsync<DocumentText>(s => s
             .From(0)
             .Size(20)
-            .Sort(ss => ss.Ascending(p => p.CreatedDate))
             .Query(q => q
                 .Term(t => t.Text, text)
             )
         );
 
-        if (response.IsValid)
+        if (!response.IsValid)
         {
-            return response.Documents.ToList();
+            return new List<DocumentText>();
         }
 
-        return _dbContext.Documents.Where(x => x.Text.Contains(text)).OrderBy(x => x.CreatedDate).Take(20).ToList();
+        var documentIds = response.Documents.Select(x => x.Id);
+
+        return await _dbContext.Documents.Where(x => documentIds.Contains(x.Id)).OrderBy(x => x.CreatedDate).ToListAsync();
+
     }
 
     /// <summary>
@@ -102,6 +106,11 @@ public class TextSearchAppService
     {
         var response = await _elasticClient.GetAsync<DocumentText>(id, idx => idx.Index(_index));
 
-        return response.IsValid ? response.Source : null;
+        if (response.IsValid)
+        {
+            return await _dbContext.Documents.FindAsync(response.Source.Id);
+        }
+
+        return null;
     }
 }

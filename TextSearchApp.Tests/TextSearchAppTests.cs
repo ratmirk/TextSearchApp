@@ -39,16 +39,20 @@ public class TextSearchAppControllerTests
     [TestCase(false)]
     public async Task SearchDocumentsTest(bool isValid)
     {
+        var rnd = new Random();
         var expectedResult = new List<DocumentText>
         {
-            new() {Id = 1, Text = "test"},
-            new() {Id = 2, Text = "test"},
+            new() {Id = rnd.Next(), Text = "test"},
+            new() {Id = rnd.Next(), Text = "test"},
         };
+        await _dbConext.AddRangeAsync(expectedResult);
+        await _dbConext.SaveChangesAsync();
+
         var response = new Mock<ISearchResponse<DocumentText>>();
         response.SetupGet(x => x.IsValid).Returns(isValid);
         response.SetupGet(x => x.Documents).Returns(expectedResult);
         _elasticMock.Setup(x =>
-            x.SearchAsync<DocumentText>(It.IsAny<Func<SearchDescriptor<DocumentText>, ISearchRequest>>(),
+            x.SearchAsync(It.IsAny<Func<SearchDescriptor<DocumentText>, ISearchRequest>>(),
                 It.IsAny<CancellationToken>())).Returns(Task.FromResult(response.Object));
 
         var service = new TextSearchAppService(_dbConext, _elasticMock.Object, _configurationMock.Object, _loggerMock);

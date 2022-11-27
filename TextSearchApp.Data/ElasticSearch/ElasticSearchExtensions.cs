@@ -30,20 +30,15 @@ public static class ElasticSearchExtensions
     {
         settings
             .DefaultMappingFor<DocumentText>(m => m
-                .IdProperty(p => p.Id));
+                .IdProperty(p => p.Id)
+                .Ignore(p => p.Rubrics)
+                .Ignore(p => p.CreatedDate));
     }
 
     private static void CreateIndex(IElasticClient client, string indexName)
     {
         var createIndexResponse = client.Indices.Create(indexName,
-            index => index.Map<DocumentText>(x =>
-                x.Properties(p => p
-                    .Number(num => num
-                        .Name(n => n.Id)
-                        .Type(NumberType.Long)))
-                    .Properties(p => p
-                        .Text(t => t
-                            .Name(n => n.Text))))
+            index => index.Map<DocumentText>(x => x.AutoMap())
         );
     }
 }
