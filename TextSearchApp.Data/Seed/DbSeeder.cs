@@ -46,5 +46,20 @@ public static class DbSeeder
         }
 
         await dbContext.SaveChangesAsync();
+        await IndexDocuments(configuration, dbContext, elasticClient);
+    }
+
+    private static async Task IndexDocuments(IConfiguration configuration, TextSearchAppDbContext dbContext, IElasticClient elasticClient)
+    {
+         bool.TryParse(configuration["SeedSettings:IsNeedToIndex"], out var isNeedToIndex);
+
+         if (isNeedToIndex)
+         {
+             var docs = dbContext.Documents.AsAsyncEnumerable();
+             await foreach(var document in docs)
+             {
+                 await elasticClient.IndexDocumentAsync(document);
+             }
+         }
     }
 }
