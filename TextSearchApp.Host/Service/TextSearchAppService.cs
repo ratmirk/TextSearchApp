@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,8 +7,9 @@ using Microsoft.Extensions.Logging;
 using Nest;
 using TextSearchApp.Data;
 using TextSearchApp.Data.Entities;
+using TextSearchApp.Host.Common;
 
-namespace TextSearchApp.Host;
+namespace TextSearchApp.Host.Service;
 
 /// <summary>
 /// Сервис TextSearch.
@@ -22,7 +22,7 @@ public class TextSearchAppService
     private ILogger<TextSearchAppService> _logger;
 
     /// <summary>
-    /// Конструктор TextSearchAppService
+    /// Конструктор TextSearchAppService.
     /// </summary>
     /// <param name="dbContext"> Контекст базы. </param>
     /// <param name="elasticClient"> Клиент IElasticClient. </param>
@@ -30,18 +30,19 @@ public class TextSearchAppService
     /// <param name="logger"> Logger. </param>
     public TextSearchAppService(TextSearchAppDbContext dbContext, IElasticClient elasticClient, IConfiguration configuration, ILogger<TextSearchAppService> logger)
     {
-        _dbContext = dbContext;
-        _elasticClient = elasticClient;
-        _index = configuration["ELKConfiguration:index"];
-        _logger = logger;
+        _dbContext = dbContext.EnsureNotNull(nameof(dbContext));
+        _elasticClient = elasticClient.EnsureNotNull(nameof(elasticClient));
+        _index = configuration["ELKConfiguration:index"].EnsureNotNull(nameof(configuration));;
+        _logger = logger.EnsureNotNull(nameof(logger));;
     }
 
     /// <summary>
-    /// Поиск документов по тексту
+    /// Поиск документов по тексту.
     /// </summary>
     /// <param name="text"> Текст. </param>
     public async Task<List<DocumentText>> SearchDocumentsByText(string text)
     {
+        _logger.LogInformation("Поиск документа по тексту {Text}", text);
         var response = await _elasticClient.SearchAsync<DocumentText>(s => s
             .From(0)
             .Size(20)
@@ -52,6 +53,7 @@ public class TextSearchAppService
 
         if (!response.IsValid)
         {
+            _logger.LogError("Elastic вернул невалидный ответ по поиску: {Text}", text);
             return new List<DocumentText>();
         }
 
@@ -68,6 +70,7 @@ public class TextSearchAppService
     /// <exception cref="KeyNotFoundException"></exception>
     public async Task DeleteDocumentAsync(long id)
     {
+        _logger.LogInformation("Удаление документа id: {Id}", id);
         var document = await _dbContext.Documents.FindAsync(id);
         if (document != null)
         {
@@ -77,7 +80,8 @@ public class TextSearchAppService
         }
         else
         {
-            throw new KeyNotFoundException();
+            _logger.LogError("Документ не найден в базе по id: {Id}", id);
+            throw new KeyNotFoundException("Документ не найден в базе");
         }
     }
 
@@ -87,15 +91,18 @@ public class TextSearchAppService
     /// <param name="document"> Объект документа. </param>
     public async Task AddDocumentAsync(DocumentText document)
     {
+        _logger.LogInformation("Добавление документа");
         var doc = await _dbContext.AddAsync(document);
         await _dbContext.SaveChangesAsync();
 
         var response = await _elasticClient.IndexDocumentAsync(doc.Entity);
 
-        if (response.IsValid)
+        if (!response.IsValid)
         {
-            _logger.LogInformation("Index document with {Id} succeeded", response.Id);
+            _logger.LogError("Elastic вернул невалидный ответ по добавлению документа {@Document} в индекс:", doc.Entity);
         }
+
+        _logger.LogInformation("Index document with id: {Id} succeeded", response.Id);
     }
 
     /// <summary>
@@ -104,13 +111,15 @@ public class TextSearchAppService
     /// <param name="id"> Идентификатор. </param>
     public async Task<DocumentText> GetById(long id)
     {
+        _logger.LogInformation("Получение документа по id");
         var response = await _elasticClient.GetAsync<DocumentText>(id, idx => idx.Index(_index));
 
-        if (response.IsValid)
+        if (!response.IsValid)
         {
-            return await _dbContext.Documents.FindAsync(response.Source.Id);
+            _logger.LogError("Elastic вернул невалидный ответ по получению по id: {Id}", id);
+            return null;
         }
 
-        return null;
+        return await _dbContext.Documents.FindAsync(response.Source.Id);
     }
 }

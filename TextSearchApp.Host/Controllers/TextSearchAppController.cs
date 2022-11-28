@@ -1,14 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using TextSearchApp.Data.Entities;
+using TextSearchApp.Host.Common;
+using TextSearchApp.Host.Service;
 
 namespace TextSearchApp.Host.Controllers;
 
 /// <inheritdoc />
 [ApiController]
 [Route("api/text-search")]
+[AppExceptionFilter]
 public class TextSearchAppController : ControllerBase
 {
     private readonly TextSearchAppService _textSearchService;
@@ -16,7 +18,7 @@ public class TextSearchAppController : ControllerBase
     /// <inheritdoc />
     public TextSearchAppController(TextSearchAppService textSearchService)
     {
-        _textSearchService = textSearchService;
+        _textSearchService = textSearchService.EnsureNotNull(nameof(textSearchService));;
     }
 
     /// <summary>
@@ -26,8 +28,9 @@ public class TextSearchAppController : ControllerBase
     /// <returns></returns>
     [HttpGet]
     [Route("search-documents")]
-    public async Task<List<DocumentText>> SearchDocuments(string text)
+    public async Task<List<DocumentText>> SearchDocuments([FromQuery]string text)
     {
+        text.EnsureNotNullOrWhiteSpace(nameof(text));
         return await _textSearchService.SearchDocumentsByText(text);
     }
 
@@ -37,9 +40,10 @@ public class TextSearchAppController : ControllerBase
     /// <param name="id"></param>
     /// <returns></returns>
     [HttpGet]
-    [Route("get-document")]
+    [Route("get-document/{id}")]
     public async Task<DocumentText> GetDocument(long id)
     {
+        id.EnsureNotNull(nameof(id));
         return await _textSearchService.GetById(id);
     }
 
@@ -51,6 +55,9 @@ public class TextSearchAppController : ControllerBase
     [Route("add-document")]
     public async Task<IActionResult> AddDocument([FromBody]DocumentText document)
     {
+        document.EnsureNotNull(nameof(document));
+        document.Text.EnsureNotNullOrWhiteSpace(nameof(document.Text));
+
         await _textSearchService.AddDocumentAsync(document);
         return Ok(document);
     }
@@ -60,21 +67,11 @@ public class TextSearchAppController : ControllerBase
     /// </summary>
     /// <param name="id"> Id Документа. </param>
     [HttpDelete]
-    [Route("delete-document")]
+    [Route("delete-document/{id}")]
     public async Task<IActionResult> DeleteDocument(long id)
     {
-        try
-        {
-            await _textSearchService.DeleteDocumentAsync(id);
-        }
-        catch (KeyNotFoundException e)
-        {
-            return BadRequest("Такой документ не найден");
-        }
-        catch (Exception e)
-        {
-            return Problem("Неизвестная ошибка");
-        }
+        id.EnsureNotNull(nameof(id));
+        await _textSearchService.DeleteDocumentAsync(id);
 
         return Ok();
     }

@@ -6,7 +6,7 @@
       "dotnetRunMessages": "true",
       "launchBrowser": true,
       "applicationUrl": "http://localhost:5080",
-      "commandLineArgs": "seed",
+      "commandLineArgs": "",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }

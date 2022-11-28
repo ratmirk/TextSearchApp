@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TextSearchApp.Data.Entities;
 
+/// <summary> Документ с текстом. </summary>
 public class DocumentText
 {
     [Column("id")]
