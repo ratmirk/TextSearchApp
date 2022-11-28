@@ -11,13 +11,11 @@ using Nest;
 using NUnit.Framework;
 using TextSearchApp.Data;
 using TextSearchApp.Data.Entities;
-using TextSearchApp.Host;
-using TextSearchApp.Host.Controllers;
 using TextSearchApp.Host.Service;
 
 namespace TextSearchApp.Tests;
 
-public class TextSearchAppControllerTests
+public class TextSearchAppServiceTests
 {
     private TextSearchAppDbContext _dbConext;
     private Mock<IElasticClient> _elasticMock;
@@ -57,8 +55,7 @@ public class TextSearchAppControllerTests
                 It.IsAny<CancellationToken>())).Returns(Task.FromResult(response.Object));
 
         var service = new TextSearchAppService(_dbConext, _elasticMock.Object, _configurationMock.Object, _loggerMock);
-        var controller = new TextSearchAppController(service);
-        var result = await controller.SearchDocuments("test");
+        var result = await service.SearchDocumentsByTextAsync("test");
         _ = isValid ? result.Should().BeEquivalentTo(expectedResult) : result.Should().BeEmpty();
     }
 }
