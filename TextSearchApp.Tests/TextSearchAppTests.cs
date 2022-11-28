@@ -13,6 +13,7 @@ using TextSearchApp.Data;
 using TextSearchApp.Data.Entities;
 using TextSearchApp.Host;
 using TextSearchApp.Host.Controllers;
+using TextSearchApp.Host.Service;
 
 namespace TextSearchApp.Tests;
 

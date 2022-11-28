@@ -10,6 +10,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using TextSearchApp.Data;
 using TextSearchApp.Data.ElasticSearch;
+using TextSearchApp.Host.Service;
 
 namespace TextSearchApp.Host;
 
