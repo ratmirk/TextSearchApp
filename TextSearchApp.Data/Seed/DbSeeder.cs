@@ -13,8 +13,14 @@ using TextSearchApp.Data.Entities;
 
 namespace TextSearchApp.Data.Seed;
 
+/// <summary>
+/// Класс-помощник для импорта данных в базу из файла.
+/// </summary>
 public static class DbSeeder
 {
+    /// <summary>
+    /// Заполнить базу.
+    /// </summary>
     public static async Task SeedDb(TextSearchAppDbContext dbContext, IElasticClient elasticClient, IConfiguration configuration)
     {
         var csvConfig = new CsvConfiguration(CultureInfo.CurrentCulture)
@@ -39,10 +45,8 @@ public static class DbSeeder
             var isParsed = DateTime.TryParse(createdDateText, out var createdDate);
             var rubrics = csvReader.GetField(2)?.Split(",").Select(x => Regex.Match(x, "'(.*)'").Groups[1].Value).ToArray();
 
-            var doc = await dbContext.Documents.AddAsync(new DocumentText
+            await dbContext.Documents.AddAsync(new DocumentText
                 {Text = text, CreatedDate = isParsed ? createdDate.ToUniversalTime() : null, Rubrics = rubrics});
-
-            await elasticClient.IndexDocumentAsync(doc.Entity);
         }
 
         await dbContext.SaveChangesAsync();

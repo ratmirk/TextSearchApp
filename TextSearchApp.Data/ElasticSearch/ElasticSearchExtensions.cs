@@ -6,8 +6,10 @@ using TextSearchApp.Data.Entities;
 
 namespace TextSearchApp.Data.ElasticSearch;
 
+/// <summary> Методы-расширения для добавления ElasticSearch в DI. </summary>
 public static class ElasticSearchExtensions
 {
+    /// <summary> Регистрация ElasticSearch в DI. </summary>
     public static void AddElasticsearch(this IServiceCollection services, IConfiguration configuration)
     {
         var url = configuration["ELKConfiguration:Uri"];

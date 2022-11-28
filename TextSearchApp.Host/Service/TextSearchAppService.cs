@@ -22,7 +22,7 @@ public class TextSearchAppService
     private ILogger<TextSearchAppService> _logger;
 
     /// <summary>
-    /// Конструктор TextSearchAppService
+    /// Конструктор TextSearchAppService.
     /// </summary>
     /// <param name="dbContext"> Контекст базы. </param>
     /// <param name="elasticClient"> Клиент IElasticClient. </param>
@@ -37,12 +37,12 @@ public class TextSearchAppService
     }
 
     /// <summary>
-    /// Поиск документов по тексту
+    /// Поиск документов по тексту.
     /// </summary>
     /// <param name="text"> Текст. </param>
     public async Task<List<DocumentText>> SearchDocumentsByText(string text)
     {
-        _logger.LogInformation("Поиск документа по тексту");
+        _logger.LogInformation("Поиск документа по тексту {Text}", text);
         var response = await _elasticClient.SearchAsync<DocumentText>(s => s
             .From(0)
             .Size(20)
@@ -53,7 +53,7 @@ public class TextSearchAppService
 
         if (!response.IsValid)
         {
-            _logger.LogError("Elastic вернул невалидный ответ по поиску:{Text}", text);
+            _logger.LogError("Elastic вернул невалидный ответ по поиску: {Text}", text);
             return new List<DocumentText>();
         }
 
@@ -70,7 +70,7 @@ public class TextSearchAppService
     /// <exception cref="KeyNotFoundException"></exception>
     public async Task DeleteDocumentAsync(long id)
     {
-        _logger.LogInformation("Добавление документа");
+        _logger.LogInformation("Удаление документа id: {Id}", id);
         var document = await _dbContext.Documents.FindAsync(id);
         if (document != null)
         {
@@ -80,6 +80,7 @@ public class TextSearchAppService
         }
         else
         {
+            _logger.LogError("Документ не найден в базе по id: {Id}", id);
             throw new KeyNotFoundException("Документ не найден в базе");
         }
     }
@@ -101,7 +102,7 @@ public class TextSearchAppService
             _logger.LogError("Elastic вернул невалидный ответ по добавлению документа {@Document} в индекс:", doc.Entity);
         }
 
-        _logger.LogInformation("Index document with {Id} succeeded", response.Id);
+        _logger.LogInformation("Index document with id: {Id} succeeded", response.Id);
     }
 
     /// <summary>
@@ -115,7 +116,7 @@ public class TextSearchAppService
 
         if (!response.IsValid)
         {
-            _logger.LogError("Elastic вернул невалидный ответ по получению по {Id}", id);
+            _logger.LogError("Elastic вернул невалидный ответ по получению по id: {Id}", id);
             return null;
         }
 
