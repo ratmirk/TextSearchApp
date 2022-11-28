@@ -30,8 +30,7 @@ public class TextSearchAppServiceTests
         _loggerMock = Mock.Of<ILogger<TextSearchAppService>>();
         _configurationMock = new Mock<IConfigurationRoot>();
 
-        _configurationMock.Setup<IConfiguration>(c => c.GetSection("ELKConfiguration"))
-            .Returns(new ConfigurationSection(_configurationMock.Object, "ELKConfiguration"));
+        _configurationMock.Setup(_ => _["ELKConfiguration:index"]).Returns("test");
     }
 
     [TestCase(true)]
