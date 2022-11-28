@@ -14,7 +14,7 @@ namespace TextSearchApp.Host.Service;
 /// <summary>
 /// Сервис TextSearch.
 /// </summary>
-public class TextSearchAppService
+public class TextSearchAppService : ITextSearchAppService
 {
     private readonly TextSearchAppDbContext _dbContext;
     private readonly IElasticClient _elasticClient;
@@ -36,11 +36,9 @@ public class TextSearchAppService
         _logger = logger.EnsureNotNull(nameof(logger));;
     }
 
-    /// <summary>
-    /// Поиск документов по тексту.
-    /// </summary>
-    /// <param name="text"> Текст. </param>
-    public async Task<List<DocumentText>> SearchDocumentsByText(string text)
+
+    /// <inheritdoc />
+    public async Task<List<DocumentText>> SearchDocumentsByTextAsync(string text)
     {
         _logger.LogInformation("Поиск документа по тексту {Text}", text);
         var response = await _elasticClient.SearchAsync<DocumentText>(s => s
@@ -63,11 +61,7 @@ public class TextSearchAppService
 
     }
 
-    /// <summary>
-    /// Удалить документ по идентификатору.
-    /// </summary>
-    /// <param name="id"> Идентификатор. </param>
-    /// <exception cref="KeyNotFoundException"></exception>
+    /// <inheritdoc />
     public async Task DeleteDocumentAsync(long id)
     {
         _logger.LogInformation("Удаление документа id: {Id}", id);
@@ -85,10 +79,7 @@ public class TextSearchAppService
         }
     }
 
-    /// <summary>
-    /// Добавить документ.
-    /// </summary>
-    /// <param name="document"> Объект документа. </param>
+    /// <inheritdoc />
     public async Task AddDocumentAsync(DocumentText document)
     {
         _logger.LogInformation("Добавление документа");
@@ -105,13 +96,10 @@ public class TextSearchAppService
         _logger.LogInformation("Index document with id: {Id} succeeded", response.Id);
     }
 
-    /// <summary>
-    /// Получить документ по идентификатору.
-    /// </summary>
-    /// <param name="id"> Идентификатор. </param>
+    /// <inheritdoc />
     public async Task<DocumentText> GetById(long id)
     {
-        _logger.LogInformation("Получение документа по id");
+        _logger.LogInformation("Получение документа по id: {Id}", id);
         var response = await _elasticClient.GetAsync<DocumentText>(id, idx => idx.Index(_index));
 
         if (!response.IsValid)

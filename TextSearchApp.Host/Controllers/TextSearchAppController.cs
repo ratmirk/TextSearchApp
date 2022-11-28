@@ -13,10 +13,10 @@ namespace TextSearchApp.Host.Controllers;
 [AppExceptionFilter]
 public class TextSearchAppController : ControllerBase
 {
-    private readonly TextSearchAppService _textSearchService;
+    private readonly ITextSearchAppService _textSearchService;
 
     /// <inheritdoc />
-    public TextSearchAppController(TextSearchAppService textSearchService)
+    public TextSearchAppController(ITextSearchAppService textSearchService)
     {
         _textSearchService = textSearchService.EnsureNotNull(nameof(textSearchService));;
     }
@@ -31,7 +31,7 @@ public class TextSearchAppController : ControllerBase
     public async Task<List<DocumentText>> SearchDocuments([FromQuery]string text)
     {
         text.EnsureNotNullOrWhiteSpace(nameof(text));
-        return await _textSearchService.SearchDocumentsByText(text);
+        return await _textSearchService.SearchDocumentsByTextAsync(text);
     }
 
     /// <summary>

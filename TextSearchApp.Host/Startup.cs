@@ -49,10 +49,10 @@ public class Startup
             options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
         });
 
-        services.AddScoped<TextSearchAppService>();
+        services.AddScoped<ITextSearchAppService, TextSearchAppService>();
 
         //Db
-        services.AddDbContext<TextSearchAppDbContext>(
+        services.AddDbContextPool<TextSearchAppDbContext>(
             options => options.UseNpgsql(_configuration["ConnectionString"]));
         services.AddElasticsearch(_configuration);
     }
