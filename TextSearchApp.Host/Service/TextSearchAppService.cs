@@ -45,7 +45,8 @@ public class TextSearchAppService : ITextSearchAppService
             .From(0)
             .Size(20)
             .Query(q => q
-                .Term(t => t.Text, text)
+                .Match(m => m.Field(f => f.Text)
+                    .Query(text))
             )
         );
 
