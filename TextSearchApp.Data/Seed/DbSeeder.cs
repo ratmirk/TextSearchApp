@@ -23,6 +23,8 @@ public static class DbSeeder
     /// </summary>
     public static async Task SeedDb(TextSearchAppDbContext dbContext, IElasticClient elasticClient, IConfiguration configuration)
     {
+        await dbContext.Database.EnsureCreatedAsync();
+
         var csvConfig = new CsvConfiguration(CultureInfo.CurrentCulture)
         {
             HasHeaderRecord = bool.Parse(configuration["SeedSettings:HasHeaderRecord"]),
