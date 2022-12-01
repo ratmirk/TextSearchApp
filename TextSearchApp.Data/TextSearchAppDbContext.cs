@@ -10,7 +10,6 @@ public sealed class TextSearchAppDbContext : DbContext
 {
     public TextSearchAppDbContext(DbContextOptions options) : base(options)
     {
-        Database.EnsureCreated();
     }
 
     public DbSet<DocumentText> Documents { get; set; }

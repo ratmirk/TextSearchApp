@@ -24,8 +24,7 @@ public class TextSearchAppController : ControllerBase
     /// <summary>
     /// Поиск по тексту.
     /// </summary>
-    /// <param name="text"></param>
-    /// <returns></returns>
+    /// <param name="text"> Поисковый запрос. </param>
     [HttpGet]
     [Route("search-documents")]
     public async Task<List<DocumentText>> SearchDocuments([FromQuery]string text)
@@ -37,7 +36,7 @@ public class TextSearchAppController : ControllerBase
     /// <summary>
     /// Получить по Id.
     /// </summary>
-    /// <param name="id"></param>
+    /// <param name="id"> Идентификатор документа. </param>
     /// <returns></returns>
     [HttpGet]
     [Route("get-document/{id}")]
@@ -65,7 +64,7 @@ public class TextSearchAppController : ControllerBase
     /// <summary>
     /// Удалить документ из базы.
     /// </summary>
-    /// <param name="id"> Id Документа. </param>
+    /// <param name="id"> Идентификатор документа. </param>
     [HttpDelete]
     [Route("delete-document/{id}")]
     public async Task<IActionResult> DeleteDocument(long id)

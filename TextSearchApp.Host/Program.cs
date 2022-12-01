@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Nest;
 using TextSearchApp.Data;
 using TextSearchApp.Data.Seed;
@@ -44,7 +45,9 @@ public static class Program
             var elastic = scope.ServiceProvider.GetRequiredService<IElasticClient>();
             var config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
 
-            await DbSeeder.SeedDb(context, elastic, config);
+            var logger = scope.ServiceProvider.GetRequiredService<ILogger<Startup>>();
+            logger.LogInformation("Seed DB");
+            await DbSeeder.SeedDb(context, elastic, config, logger);
             await host.RunAsync();
         }
         else
