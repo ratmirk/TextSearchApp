@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -8,6 +9,7 @@ using System.Threading.Tasks;
 using CsvHelper;
 using CsvHelper.Configuration;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Nest;
 using TextSearchApp.Data.Entities;
 
@@ -21,8 +23,13 @@ public static class DbSeeder
     /// <summary>
     /// Заполнить базу.
     /// </summary>
-    public static async Task SeedDb(TextSearchAppDbContext dbContext, IElasticClient elasticClient, IConfiguration configuration)
+    public static async Task SeedDb(
+        TextSearchAppDbContext dbContext,
+        IElasticClient elasticClient,
+        IConfiguration configuration,
+        ILogger logger)
     {
+        logger.LogInformation("Start seeding DB");
         await dbContext.Database.EnsureCreatedAsync();
 
         var csvConfig = new CsvConfiguration(CultureInfo.CurrentCulture)
@@ -52,20 +59,38 @@ public static class DbSeeder
         }
 
         await dbContext.SaveChangesAsync();
-        await IndexDocuments(configuration, dbContext, elasticClient);
+        logger.LogInformation("Seeding DB completed");
+        IndexDocuments(configuration, dbContext, elasticClient, logger);
     }
 
-    private static async Task IndexDocuments(IConfiguration configuration, TextSearchAppDbContext dbContext, IElasticClient elasticClient)
+    private static void IndexDocuments(IConfiguration configuration, TextSearchAppDbContext dbContext, IElasticClient elasticClient, ILogger logger)
     {
          bool.TryParse(configuration["SeedSettings:IsNeedToIndex"], out var isNeedToIndex);
 
          if (isNeedToIndex)
          {
-             var docs = dbContext.Documents.AsAsyncEnumerable();
-             await foreach(var document in docs)
-             {
-                 await elasticClient.IndexDocumentAsync(document);
-             }
+             var sw = new Stopwatch();
+             sw.Start();
+             logger.LogInformation("Start indexing DB in ElasticSearch");
+
+             elasticClient.BulkAll(dbContext.Documents.AsEnumerable(), b => b
+                     .BackOffTime(new Time(TimeSpan.FromSeconds(5)))
+                     .BackOffRetries(2)
+                     .RefreshOnCompleted()
+                     .MaxDegreeOfParallelism(4)
+                     .Size(500)
+                     .ContinueAfterDroppedDocuments()
+                     .DroppedDocumentCallback((d, text) =>
+                     {
+                         if (d.Error != null)
+                             logger.LogError("Unable to index document id: {Id} error: {Error}", text.Id, d.Error);
+
+                     }))
+                 .Wait(TimeSpan.FromMinutes(5),
+                     next => { logger.LogInformation("Next {Count} documents indexed", next.Items.Count); });
+
+             sw.Stop();
+             logger.LogInformation("Indexing DB in ElasticSearch completed in {Time}", sw.Elapsed);
          }
     }
 }
